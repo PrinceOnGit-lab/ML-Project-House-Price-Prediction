@@ -25,15 +25,18 @@ except Exception as e:
     st.error(f"❌ Error loading model: {e}")
     st.stop()
 
-# === Load dataset for locations ===
+# === Load dataset for dropdown options ===
 try:
     with open("dataset.pkl", "rb") as f:
         df = pickle.load(f)
 except FileNotFoundError:
     st.error("❌ Dataset file not found. Please upload 'dataset.pkl'.")
     st.stop()
+except Exception as e:
+    st.error(f"❌ Error loading dataset: {e}")
+    st.stop()
 
-# === UI ===
+# === Streamlit UI ===
 st.title("🏠 Bengaluru House Price Prediction App")
 
 location = st.selectbox("📍 Select Location", ["-- Select Location --"] + sorted(df["location"].unique()))
@@ -41,7 +44,7 @@ total_sqft = st.text_input("📐 Enter Total Square Feet (e.g., 1000)")
 bath = st.selectbox("🛁 Number of Bathrooms", ["-- Select --", 1, 2, 3, 4, 5])
 bhk = st.selectbox("🛏️ Number of BHK", ["-- Select --", 1, 2, 3, 4, 5])
 
-# === Prediction ===
+# === Prediction button logic ===
 if st.button("🔍 Predict Price"):
     if (
         location == "-- Select Location --" or
@@ -60,7 +63,7 @@ if st.button("🔍 Predict Price"):
                 "BHK": int(bhk)
             }])
             prediction = model.predict(input_df)[0]
-            st.success(f"🏷️ Estimated Price: {round(prediction, 2)} lakh")
+            st.success(f"🏷️ Estimated Price: ₹{round(prediction, 2)} lakh")
         except ValueError:
             st.error("❌ Please enter a valid number for square feet.")
         except Exception as e:
