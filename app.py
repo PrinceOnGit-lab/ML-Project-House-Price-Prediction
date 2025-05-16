@@ -4,24 +4,30 @@ import pickle
 import zipfile
 import os
 
-# --- Extract the model zip ---
-with zipfile.ZipFile("random_forest_house_price_model.zip", 'r') as zip_ref:
-    zip_ref.extractall("model")
+# Extract model ZIP once on app start
+if not os.path.exists("model/random_forest_house_price_model.pkl"):
+    with zipfile.ZipFile("random_forest_house_price_model.zip", 'r') as zip_ref:
+        zip_ref.extractall("model")
 
-# --- Load the model ---
-model_path = "model/random_forest_house_price_model.pkl"
-with open(model_path, 'rb') as f:
+# Load the model
+with open("model/random_forest_house_price_model.pkl", 'rb') as f:
     model = pickle.load(f)
 
-# --- Load data columns ---
+# Load dataset columns (may be a dict or list)
 with open("dataset.pkl", 'rb') as f:
-    data_columns = pickle.load(f)
+    data = pickle.load(f)
 
-# --- Load original dataset for location list ---
+# If data is dict, get 'data_columns' key; else assume list
+if isinstance(data, dict) and 'data_columns' in data:
+    data_columns = data['data_columns']
+else:
+    data_columns = data
+
+# Load locations
 df = pd.read_csv("Bengaluru_House_Data.csv")
 locations = sorted(df['location'].dropna().unique())
 
-# --- Streamlit UI ---
+# Streamlit UI
 st.title("🏠 Bengaluru House Price Predictor")
 st.markdown("### Enter the details of the house:")
 
@@ -32,21 +38,28 @@ bhk = st.number_input("Enter Number of Bedrooms (BHK)", min_value=1, max_value=1
 
 if st.button("Predict Price"):
     try:
-        # Prepare input vector
+        # Create input dict with zero for all columns
         input_dict = {col: 0 for col in data_columns}
+        
         input_dict['total_sqft'] = sqft
         input_dict['bath'] = bath
         input_dict['bhk'] = bhk
 
+        # One-hot encode location
         location_col = f"location_{location}"
         if location_col in input_dict:
             input_dict[location_col] = 1
+        else:
+            st.warning(f"⚠️ Location '{location}' not found in model columns. Prediction may be inaccurate.")
 
+        # Convert to dataframe
         input_df = pd.DataFrame([input_dict])
 
-        # Predict
+        # Predict price
         prediction = model.predict(input_df)[0]
-        formatted_price = f"{prediction:.2f}"  # Format with 2 decimals including trailing zeros
+
+        # Format price to 2 decimals including trailing zeros
+        formatted_price = f"{prediction:.2f}"
 
         st.success(f"Estimated Price: ₹{formatted_price} lakhs")
 
