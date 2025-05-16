@@ -13,11 +13,11 @@ model_path = "model/random_forest_house_price_model.pkl"
 with open(model_path, 'rb') as f:
     model = pickle.load(f)
 
-# --- Load column names for input vector ---
+# --- Load data columns (used for feature vector structure) ---
 with open("dataset.pkl", 'rb') as f:
-    data_columns = pickle.load(f)
+    data_columns = pickle.load(f)  # typically a list of column names
 
-# --- Load the original dataset for location list ---
+# --- Load original dataset to extract location list ---
 df = pd.read_csv("Bengaluru_House_Data.csv")
 locations = sorted(df['location'].dropna().unique())
 
@@ -32,20 +32,22 @@ bhk = st.slider("Number of Bedrooms (BHK)", 1, 10, 3)
 
 if st.button("Predict Price"):
     try:
-        # Prepare input data
-        input_data = pd.DataFrame(columns=data_columns)
-        input_data.loc[0] = [0] * len(data_columns)
+        # Create input vector initialized to 0s
+        input_dict = {col: 0 for col in data_columns}
+        input_dict['total_sqft'] = sqft
+        input_dict['bath'] = bath
+        input_dict['bhk'] = bhk
 
-        input_data.at[0, 'total_sqft'] = sqft
-        input_data.at[0, 'bath'] = bath
-        input_data.at[0, 'bhk'] = bhk
-
+        # Set location one-hot
         location_col = f"location_{location}"
-        if location_col in data_columns:
-            input_data.at[0, location_col] = 1
+        if location_col in input_dict:
+            input_dict[location_col] = 1
+
+        # Convert to DataFrame
+        input_df = pd.DataFrame([input_dict])
 
         # Predict
-        prediction = model.predict(input_data)[0]
+        prediction = model.predict(input_df)[0]
         st.success(f"🏷️ Estimated Price: ₹ {round(prediction, 2)} Lakhs")
 
     except Exception as e:
