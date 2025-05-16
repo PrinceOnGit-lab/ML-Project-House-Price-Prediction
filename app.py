@@ -36,20 +36,20 @@ except FileNotFoundError:
 # === UI ===
 st.title("🏠 Bengaluru House Price Prediction App")
 
-location = st.selectbox("Select Location", ["-- Select Location --"] + sorted(df["location"].unique()))
-total_sqft = st.text_input("Enter Total Square Feet (e.g., 1000)")
-bath = st.selectbox("Number of Bathrooms", ["-- Select --", 1, 2, 3, 4, 5])
-bhk = st.selectbox("Number of BHK", ["-- Select --", 1, 2, 3, 4, 5])
+location = st.selectbox("📍 Select Location", ["-- Select Location --"] + sorted(df["location"].unique()))
+total_sqft = st.text_input("📐 Enter Total Square Feet (e.g., 1000)")
+bath = st.selectbox("🛁 Number of Bathrooms", ["-- Select --", 1, 2, 3, 4, 5])
+bhk = st.selectbox("🛏️ Number of BHK", ["-- Select --", 1, 2, 3, 4, 5])
 
 # === Prediction ===
-if st.button("Predict Price"):
+if st.button("🔍 Predict Price"):
     if (
         location == "-- Select Location --" or
         bath == "-- Select --" or
         bhk == "-- Select --" or
         total_sqft.strip() == ''
     ):
-        st.warning("⚠️ Please complete all fields.")
+        st.warning("⚠️ Please complete all fields before predicting.")
     else:
         try:
             sqft_val = float(total_sqft)
@@ -60,10 +60,8 @@ if st.button("Predict Price"):
                 "BHK": int(bhk)
             }])
             prediction = model.predict(input_df)[0]
-            st.success(f"🏷️ Estimated Price: ₹{round(prediction, 2)} lakhs")
+            st.success(f"🏷️ Estimated Price: {round(prediction, 2)} lakh")
         except ValueError:
             st.error("❌ Please enter a valid number for square feet.")
         except Exception as e:
             st.error(f"❌ Prediction error: {e}")
-
-
