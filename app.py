@@ -47,7 +47,7 @@ if st.button("Predict Price"):
 
         # Predict the price
         prediction = model.predict(input_df)[0]
-        st.success(f"Estimated Price: ₹{round(prediction, 2)} lakhs")
+        st.success(f"Estimated Price: ₹{round(prediction, )} lakhs")
 
     except Exception as e:
         st.error(f"❌ Error occurred: {str(e)}")
